@@ -17,8 +17,6 @@ AssignSquareRoots(cd);
 
 M := FindEndoMatrix(X : tracezero := true);
 print "We choose the endomorphism \n", M;
-Z := false;
-
 print "We use the code from HeightsAtRationalPoints(G, M, X), but print more information";
 
 edges := G`Edges;

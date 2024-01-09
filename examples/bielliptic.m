@@ -14,4 +14,4 @@ AssignSquareRoots(cd);
 X := HyperellipticCurve(f);
 
 time hts := HeightsAtRationalPoints(G, M, X: basept:=3);
-Qp := BaseRing(BaseRing(Parent(hts[1][2])));
+print "Check value of local height at point is -2/5:", 2/5+(Qp!hts[1][2]);
