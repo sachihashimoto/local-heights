@@ -4,8 +4,8 @@ SetVerbose("EndoCheck", 0);
 R_Q<x> := PolynomialRing(Rationals());
 
 f:= x^6 + 18/5*x^4 + 6/5*x^3 + 9/5*x^2 + 6/5*x + 1/5;
-// p := 3; basept := 1; traces := [8,-8];
-p := 5; basept := 2; traces := [];
+p := 3; basept := 1; traces := [];
+// p := 5; basept := 2; traces := [];
 
 cd := ClusterData(f, p : prec := 60);
 clusters := cd`Clusters;
@@ -14,8 +14,8 @@ AssignSquareRoots(cd);
 X := HyperellipticCurve(f);
 M := FindEndoMatrix(X : tracezero := false);
 Z, degs := MatrixH1DR(X, M);
-Z0 := -4*MakeTraceZero(Z);
-M := -4*FindEndoMatrix(X : tracezero := true);
+Z0 := MakeTraceZero(Z);
+M := FindEndoMatrix(X : tracezero := true);
 
 Z := Z0;
 
