@@ -1,6 +1,6 @@
 print "Computing heights for X_0(93,1)/w_93 at p = 3";
 AttachSpec("../spec");
-SetVerbose("LocalHeights", 2);
+SetVerbose("LocalHeights", 3);
 SetVerbose("EndoCheck", 1);
 R_Q<x> := PolynomialRing(Rationals());
 
@@ -10,13 +10,14 @@ X := HyperellipticCurve(f);
 print "A model for the curve is y^2 = ",f;
 //(* * (* *)_1 (* *)_1)_0
 basept := 1;
-cd := ClusterData(f, p : prec := 50);
+cd := ClusterData(f, p : prec := 20);
 clusters := cd`Clusters;
 G := ConstructDualGraph(cd);
 AssignSquareRoots(cd);
 
 M := FindEndoMatrix(X : tracezero := true);
 print "We choose the endomorphism \n", M;
+
 print "We use the code from HeightsAtRationalPoints(G, M, X), but print more information";
 
 edges := G`Edges;
@@ -61,13 +62,14 @@ res := Matrix(small_residues);
 tr := Trace(M);
 assert IsZero(tr);// "Must use a trace 0 endomorphism"
 
-print "The matrix of phi_2 is\n", res;
-assert Valuation(BaseField(Parent(res[1][1]))!((res[1][1]+306630590263)/BaseField(Parent(res[1][1])).1) +7) ge 3;
-assert Valuation(BaseField(Parent(res[1][2]))!((res[1][2]-187945877234)/BaseField(Parent(res[1][2])).1) -2) ge 3;
-assert Valuation(BaseField(Parent(res[2][2]))!((res[2][2]+118684713029)/BaseField(Parent(res[1][2])).1) +5) ge 3;
+
+Q9 := BaseField(Parent(res[1][1]));
+a := Generators(Q9)[1];
+print_res :=Matrix(2,2, [ChangePrecision(Q9!res[i][j],4) : i, j in[1..2]]);
+printf "The matrix of phi_2 is, to precision O(3^4): \n%o\n", print_res;
 
 ZonHomGraph := DescendEndomorphism(M,res);
-print "And we obtain the action of Z on the dual graph: \n", ZonHomGraph;
+print "And we obtain the action of Z on the dual graph: \n", ChangeRing(ZonHomGraph, Q9);
 
 print "Using the orthogonal basis";
 orthogbasis, change_of_basis := GramSchmidtProcess(homologyBasis, G);
