@@ -1,7 +1,7 @@
 print "We compute local heights on the modular curves X0(N)∗, the Atkin–Lehner quotients of X0(N)";
 
 AttachSpec("../spec");
-SetVerbose("LocalHeights", 2);
+SetVerbose("LocalHeights", 3);
 SetVerbose("EndoCheck", 0);
 R_Q<x> := PolynomialRing(Rationals());
 
@@ -23,7 +23,7 @@ M := FindEndoMatrix(X : tracezero := true);
 print "We choose the endomorphism \n", M;
 Z := false;
 
-print "We use the code from HeightsAtRationalPoints(G, M, X), but print more information";
+print "We use the code from HeightsAtRationalPoints(G, M, X), but print more information contained in the paper";
 
 edges := G`Edges;
 vertices := G`Vertices;
@@ -66,6 +66,16 @@ small_residues := [row[1..g] : row in residues];
 res := Matrix(small_residues);
 tr := Trace(M);
 assert IsZero(tr);// "Must use a trace 0 endomorphism"
+
+// To check that we have enough precision:  It works similarily for everything
+if f eq x^6 + 8*x^4 + 10*x^3 + 20*x^2 + 12*x + 9 then
+    Q9 := BaseField(Parent(res[1][1]));
+    a := Generators(Q9)[1];
+    print_res :=Matrix(2,2, [ChangePrecision(Q9!res[i][j],3) : i, j in[1..2]]);
+    printf "The matrix of phi_2 is, to precision O(3^3): \n%o\n", print_res;
+    _,degrees := MatrixH1DR(X,M);
+    printf "Precision 3^3 is enough to certify computations since the degrees of the correspondence are %o", degrees;
+end if;
 
 ZonHomGraph := DescendEndomorphism(M,res);
 print "And we obtain the action of Z on the dual graph: \n", ZonHomGraph;
