@@ -6,26 +6,28 @@ This code computes local heights h_ell for odd ell not equal to p on hyperellipt
 Installing
 --
 You need to clone this repository and then run
+```
 AttachSpec("spec");
+```
+
+Verbose comments are enabled by
+```
+SetVerbose("LocalHeights", 3);
+```
 
 A basic example
 --
+```
 _<x> := PolynomialRing(Rationals());
-
 f := x^6 + 2*x^4 + 6*x^3 + 5*x^2 - 6*x + 1;
-
 p := 3;
-
 X := HyperellipticCurve(f);
-
 cd := ClusterData(f, p : prec := 20);
-
 G := ConstructDualGraph(cd);
-
 HeightsAtRationalPoints(G, M, X);
+```
 
-
-More detailed examples for how to use the code can be found in the examples folder.
+Detailed examples for how to use the code can be found in the examples folder.
 
 
 Prerequisites
