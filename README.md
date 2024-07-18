@@ -11,12 +11,19 @@ AttachSpec("spec");
 A basic example
 --
 _<x> := PolynomialRing(Rationals());
+
 f := x^6 + 2*x^4 + 6*x^3 + 5*x^2 - 6*x + 1;
+
 p := 3;
+
 X := HyperellipticCurve(f);
+
 cd := ClusterData(f, p : prec := 20);
+
 G := ConstructDualGraph(cd);
+
 HeightsAtRationalPoints(G, M, X);
+
 
 More detailed examples for how to use the code can be found in the examples folder.
 
