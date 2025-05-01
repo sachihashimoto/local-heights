@@ -1,0 +1,115 @@
+//Code from Michael Stoll
+
+// Define P^1 over Q (neede for some computations later)
+Pr1Q := ProjectiveSpace(Rationals(), 1);
+
+// Do the Elliptic Curve Chabauty computation.
+function ECC(E, ptsE, Ecov)
+  // E is the elliptic curve over a number field K, rk E(K) < [K : Q]
+  // ptsE are points on E generating a finite-index subgroup of E(K)
+  // Ecov is a morphism E --> P^1 = Pr1Q
+  // This computes the (finite) set of K-points P on E such that Ecov(P) in P^1(Q).
+  bas := ReducedBasis(ptsE);
+  T, mT := TorsionSubgroup(E);
+  lent := #Invariants(T);
+  // we need the (known subgroup of the) Mordell-Weil group of E as an abstract abelian group
+  MW := AbelianGroup(Invariants(T) cat [0 : b in bas]);
+  // and the map from this abstract group to E(K)
+  MWtoE := map<MW -> E | g :-> mT(T!s[1..lent]) + &+[s[lent+i]*bas[i] : i in [1..#bas]]
+                              where s := Eltseq(g)>;
+  // keep track of primes p such that known group is p-saturated
+  // (true for all p up to satbound)
+  satbound := 1;
+  repeat
+    printf "    run Chabauty...\n";
+    // run Elliptic Curve Chabauty
+    time MWset, N := Chabauty(MWtoE, Ecov);
+    // for the result to be provably correct, the known subgroup has to
+    // be saturated at the primes dividing N
+    badp := PrimeDivisors(N);
+    if IsEmpty(badp) or Max(badp) le satbound then
+      // condition is satisfied
+      break;
+    end if;
+    printf "    need to saturate at primes in %o\n", [p : p in badp | p gt satbound];
+    reg := Regulator(bas);
+    // update satbound
+    satbound := Max(badp);
+    // saturate at primes up to (new) satbound
+    time bas := ReducedBasis(Saturation(bas, satbound));
+    // check if group was enlarged
+    index := Round(Sqrt(reg/Regulator(bas)));
+    if index gt 1 then
+      printf "    group enlarged by index %o\n", index;
+    end if;
+    // if group was already saturated, then we are done
+  until index eq 1;
+  printf "    group was already saturated\n";
+  // we return the set of rational points on P^1 that are images of K-points on E
+  xcsE := {Pr1Q!Ecov(MWtoE(g)) : g in MWset};
+  printf "    found %o x-coordinates on E\n", #xcsE;
+  return xcsE;
+end function;
+
+// Set up the curve
+P<x> := PolynomialRing(Rationals());
+
+// The given model:
+f0 := (x^3 + 3/5*x + 1/5)*(x^3 + 3*x + 1);
+C0 := HyperellipticCurve(f0);
+
+// A better one (in particular, with integral coefficients):
+C := SimplifiedModel(ReducedMinimalWeierstrassModel(C0));
+f := HyperellipticPolynomials(C);
+assert f eq 5 * (x^3 - 3*x^2 - 5) * (x^3 - 3*x^2 - 1);
+
+K<w> := NumberField(x^3 - 3*x^2 - 1);
+
+// both factors split off a linear factor over K
+ffsK := Factorization(ChangeRing(f, K));
+assert [Degree(e[1]) : e in ffsK] eq [1, 1, 2, 2];
+
+// Find 2-Selmer set of C
+SelC, mSelC := TwoCoverDescent(C);
+ptsC := Points(C : Bound := 10^5);
+assert #ptsC eq 10;
+
+// The points with x-coordinates -1, 0, 2 cover all classes in SelC
+assert {-1, 0, 2} subset {pt[1]/pt[3] : pt in ptsC};
+A<theta> := Domain(mSelC);
+assert {mSelC(x0 - theta) : x0 in {-1, 0, 2}} eq SelC;
+
+// We use teh degree 4 factor coming from the two linear factors and the first
+// quadratic factor of f over K.
+pol := ffsK[1,1]*ffsK[2,1]*ffsK[3,1];
+
+// We get a K-rational point (w, 0) on all the twists.
+assert Evaluate(pol, w) eq 0;
+
+// We obtain the twisting factors for the Selmer set elements
+// by plugging in the known x-coordinates
+tw := [Evaluate(pol, x0) : x0 in [-1, 0, 2]];
+
+// Set up the "hyperelliptic genus 1 curves"
+Hs := [HyperellipticCurve(t * pol) : t in tw];
+
+// Construct isomorphisms to (minimal) elliptic curves
+Einfo := [* <Em, toE*toEm, map<H -> Pr1Q | [H.1, H.3]>>
+              where Em, toEm := MinimalModel(E)
+              where E, toE := EllipticCurve(H, H![w,0])
+           : H in Hs*];
+
+// Construct the input to ECC
+printf "Computing Mordell-Weil groups E(K) ...\n";
+time // Mordell-Weil group computation takes a while (but is a lot faster with minimal models)
+ECCinfo := [* <e[1],
+               [mMW(MW.i) : i in [1..Ngens(MW)]] where MW, mMW := MordellWeilGroup(e[1]), Expand(Inverse(e[2])*e[3])>
+             : e in Einfo *];
+
+// Now run ECC
+xcoords := [ECC(e[1], e[2], e[3]) : e in ECCinfo];
+
+printf "ECC gives x-coordinates: %o\n", &join xcoords;
+
+// Verify that all the points are found
+assert {Pr1Q![pt[1], pt[3]] : pt in ptsC} eq &join xcoords;
