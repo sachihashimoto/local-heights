@@ -1656,7 +1656,7 @@ intrinsic ReducePointToDualGraph(P::PtHyp, G::DualGraph) -> SeqEnum
 
   if not IsZero(P[3]) then
     x := P[1]/P[3];
-    y := P[2]/P[3]^(g);
+    y := P[2]/P[3]^(g+1);
   else
     if ueberevenClusters[topCluster] then
     //a point (X:Y:0) at infinity reduces onto the + component attached to the top cluster if Y/lc^{1/2}X^{g+1} = +1,
