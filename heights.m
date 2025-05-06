@@ -1655,8 +1655,8 @@ intrinsic ReducePointToDualGraph(P::PtHyp, G::DualGraph) -> SeqEnum
   topCluster := Index(rel_depths,-1);
 
   if not IsZero(P[3]) then
-    x := P[1]/P[3];
-    y := P[2]/P[3]^(g+1);
+    xcoord := P[1]/P[3];
+    ycoord := P[2]/P[3]^(g+1);
   else
     if ueberevenClusters[topCluster] then
     //a point (X:Y:0) at infinity reduces onto the + component attached to the top cluster if Y/lc^{1/2}X^{g+1} = +1,
@@ -1676,33 +1676,33 @@ intrinsic ReducePointToDualGraph(P::PtHyp, G::DualGraph) -> SeqEnum
   curr_children := children[topCluster];
   smallest_Us_containing_P := topCluster;
 
-  function CheckChildrenOfS(childset, cluster, x)
+  function CheckChildrenOfS(childset, cluster, xcoord)
     //check if P is contained in Us for any child s in the childset of some cluster
     for s in childset do
       if #children[clusters[s]] eq 1 then
         continue;
       end if;
       r0 := [allroots[j][1] : j in clusters[s]][1]; //pick a parameter in s
-      if NormValuation(Parent(r0)!x -  r0) gt abs_depths[cluster] then
+      if NormValuation(Parent(r0)!xcoord -  r0) gt abs_depths[cluster] then
         return s;
       end if;
     end for;
      return -1;
   end function;
 
-  smaller_Us := CheckChildrenOfS(curr_children, topCluster, x);
+  smaller_Us := CheckChildrenOfS(curr_children, topCluster, xcoord);
   while smaller_Us ne -1 do
     smallest_Us_containing_P := smaller_Us;
     curr_children := children[smaller_Us];
-    smaller_Us := CheckChildrenOfS(curr_children, smaller_Us, x);
+    smaller_Us := CheckChildrenOfS(curr_children, smaller_Us, xcoord);
   end while;
 
   r0 := [allroots[j][1] : j in clusters[smallest_Us_containing_P]][1];
 
   //now check if we lie in the bounding annulus A_s of this smallest U_s
-  if NormValuation(x - r0) lt abs_depths[smallest_Us_containing_P] and smallest_Us_containing_P ne topCluster then
+  if NormValuation(xcoord - r0) lt abs_depths[smallest_Us_containing_P] and smallest_Us_containing_P ne topCluster then
     //we belong to A_s, now we want to return an edge, and how far along the edge.
-    dist := (abs_depths[smallest_Us_containing_P] - NormValuation(x - r0));
+    dist := (abs_depths[smallest_Us_containing_P] - NormValuation(xcoord - r0));
     parentindex := Parent(smallest_Us_containing_P, cd);
     v := Index(vertices, [parentindex, 0] );
     //find edge corresponding to s goes from s to its parent
@@ -1727,14 +1727,14 @@ intrinsic ReducePointToDualGraph(P::PtHyp, G::DualGraph) -> SeqEnum
         sqrtftinv := -sqrtftinv;
       end if;
 
-      evalsqrtf := Evaluate(sqrtftinv, x - r0); // I think, since x isn't centered
+      evalsqrtf := Evaluate(sqrtftinv, xcoord - r0); // I think, since x isn't centered
 
-      if IsWeaklyZero(y*evalsqrtf, -1) then
+      if IsWeaklyZero(ycoord*evalsqrtf -1) then
         return [* [smallest_Us_containing_P,1], dist, "e" *];
-      elif IsWeaklyZero(y*evalsqrtf + 1) then
+      elif IsWeaklyZero(ycoord*evalsqrtf + 1) then
         return [* [smallest_Us_containing_P,2], dist, "e" *];
       else
-        error "The value %o does not equal -1 or 1.\n", y*evalsqrtf;
+        error "The value %o does not equal -1 or 1.\n", ycoord*evalsqrtf;
       end if;
     end if;
   else //not in A_s
@@ -1744,14 +1744,14 @@ intrinsic ReducePointToDualGraph(P::PtHyp, G::DualGraph) -> SeqEnum
         evalsqrth := 1;
         for i->c in children_of_s do
           ri := params[c];
-          evalsqrth *:= Evaluate(sqrth_factored[i], x - ri); //since x isn't centered
+          evalsqrth *:= Evaluate(sqrth_factored[i], xcoord - ri); //since x isn't centered
         end for;
-      if IsWeaklyZero(y*evalsqrth -1) then
+      if IsWeaklyZero(ycoord*evalsqrth -1) then
           return [* smallest_Us_containing_P, 1, "v" *];
-      elif IsWeaklyZero(y*evalsqrth + 1) then
+      elif IsWeaklyZero(ycoord*evalsqrth + 1) then
          return [* smallest_Us_containing_P, -1, "v" *];
       else
-        error "The value %o does not equal -1 or 1.\n", y*evalsqrth;
+        error "The value %o does not equal -1 or 1.\n", ycoord*evalsqrth;
       end if;
     else
       return [* smallest_Us_containing_P, 0, "v" *]; //the vertex that P reduces to
