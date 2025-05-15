@@ -24,6 +24,7 @@ p := 3;
 X := HyperellipticCurve(f);
 cd := ClusterData(f, p : prec := 20);
 G := ConstructDualGraph(cd);
+M := FindEndoMatrix(X : tracezero := true);
 HeightsAtRationalPoints(G, M, X);
 ```
 
